@@ -15,14 +15,8 @@ export interface ChatMessage {
   role: "agent" | "user" | "system";
   content: string;
   timestamp: number;
+  type?: "text" | "gmail-card" | "call-prompt";
 }
-
-export type OnboardingStep =
-  | "welcome"
-  | "call"
-  | "text-fallback"
-  | "gmail"
-  | "graduation";
 
 export const initialOnboardingState: OnboardingState = {
   agentName: null,
