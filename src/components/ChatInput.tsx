@@ -46,7 +46,7 @@ export default function ChatInput({
   };
 
   return (
-    <div className="px-6 pb-6 pt-2 animate-fade-in-up" style={{ animationDelay: "400ms" }}>
+    <div className="px-6 pb-6 pt-2">
       <input
         ref={inputRef}
         type="text"

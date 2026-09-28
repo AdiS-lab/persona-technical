@@ -22,17 +22,19 @@ export default function OnboardingFlow() {
   const [showGmail, setShowGmail] = useState(false);
   const [currentField, setCurrentField] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(true);
-  const [showInput, setShowInput] = useState(false);
+  const [revealStage, setRevealStage] = useState(0); // 0=nothing, 1=headline, 2=subtitle, 3=input
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, showGmail]);
 
-  // Welcome reveal timing
+  // Staged welcome reveal — no CSS animation classes, pure transitions
   useEffect(() => {
-    const t = setTimeout(() => setShowInput(true), 1200);
-    return () => clearTimeout(t);
+    const t1 = setTimeout(() => setRevealStage(1), 100);
+    const t2 = setTimeout(() => setRevealStage(2), 500);
+    const t3 = setTimeout(() => setRevealStage(3), 1100);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, []);
 
   const addAgentMsg = useCallback((content: string, delay = 0) => {
@@ -266,7 +268,7 @@ export default function OnboardingFlow() {
     );
   }
 
-  // Welcome — centered hero
+  // Welcome — centered hero with staged transitions (no CSS animation classes)
   if (phase === "naming" && showWelcome) {
     return (
       <div
@@ -275,13 +277,17 @@ export default function OnboardingFlow() {
       >
         {/* Headline */}
         <h1
-          className="hero-display animate-fade-in text-center"
+          className="hero-display text-center"
           style={{
             fontSize: "56px",
             fontWeight: 600,
             lineHeight: 1.07,
             letterSpacing: "-0.28px",
             color: "var(--on-dark)",
+            opacity: revealStage >= 1 ? 1 : 0,
+            transform: revealStage >= 1 ? "translateY(0)" : "translateY(8px)",
+            transition: "opacity 600ms cubic-bezier(0.25,0.1,0.25,1), transform 600ms cubic-bezier(0.25,0.1,0.25,1)",
+            willChange: "opacity, transform",
           }}
         >
           Let&apos;s set up your Persona.
@@ -289,30 +295,41 @@ export default function OnboardingFlow() {
 
         {/* Subtitle */}
         <p
-          className="mt-3 animate-fade-in text-center"
+          className="mt-3 text-center"
           style={{
             fontSize: "28px",
             fontWeight: 400,
             lineHeight: 1.14,
             letterSpacing: "0.196px",
             color: "var(--body-muted)",
-            animationDelay: "200ms",
+            opacity: revealStage >= 2 ? 1 : 0,
+            transform: revealStage >= 2 ? "translateY(0)" : "translateY(8px)",
+            transition: "opacity 600ms cubic-bezier(0.25,0.1,0.25,1), transform 600ms cubic-bezier(0.25,0.1,0.25,1)",
+            willChange: "opacity, transform",
           }}
         >
           First, give your agent a name.
         </p>
 
         {/* Input */}
-        {showInput && (
-          <div className="w-full max-w-[400px] mt-16">
+        <div
+          className="w-full max-w-[400px] mt-16"
+          style={{
+            opacity: revealStage >= 3 ? 1 : 0,
+            transform: revealStage >= 3 ? "translateY(0)" : "translateY(16px)",
+            transition: "opacity 500ms cubic-bezier(0.25,0.1,0.25,1), transform 500ms cubic-bezier(0.25,0.1,0.25,1)",
+            willChange: "opacity, transform",
+          }}
+        >
+          {revealStage >= 3 && (
             <ChatInput
               onSend={handleNameSubmit}
               placeholder="Name your agent..."
               autoFocus
               large
             />
-          </div>
-        )}
+          )}
+        </div>
       </div>
     );
   }
