@@ -13,8 +13,11 @@ export default function ChatBubble({ message, agentName }: ChatBubbleProps) {
 
   if (isSystem) {
     return (
-      <div className="flex justify-center my-3 animate-fade-in-up">
-        <span className="text-[13px] text-[var(--text-tertiary)]">
+      <div className="flex justify-center my-4 animate-fade-in-up">
+        <span
+          className="text-[14px] leading-[1.43] tracking-[-0.224px]"
+          style={{ color: "var(--ink-muted-48)" }}
+        >
           {message.content}
         </span>
       </div>
@@ -27,16 +30,19 @@ export default function ChatBubble({ message, agentName }: ChatBubbleProps) {
     >
       <div className={`max-w-[85%] flex flex-col ${isAgent ? "items-start" : "items-end"}`}>
         {isAgent && agentName && (
-          <span className="text-[13px] text-[var(--text-secondary)] mb-1 ml-1">
+          <span
+            className="text-[14px] leading-[1.43] tracking-[-0.224px] mb-1 ml-1"
+            style={{ color: "var(--body-muted)" }}
+          >
             {agentName}
           </span>
         )}
         <div
-          className={`px-4 py-2.5 rounded-2xl text-[17px] leading-relaxed tracking-[-0.01em] ${
-            isAgent
-              ? "bg-[var(--surface-elevated)] text-white rounded-bl-md"
-              : "bg-[var(--accent)] text-white rounded-br-md"
-          }`}
+          className="px-4 py-3 rounded-[18px] text-[17px] leading-[1.47] tracking-[-0.374px]"
+          style={{
+            backgroundColor: isAgent ? "var(--surface-tile-1)" : "var(--primary)",
+            color: isAgent ? "var(--on-dark)" : "var(--on-primary)",
+          }}
         >
           {message.content}
         </div>
