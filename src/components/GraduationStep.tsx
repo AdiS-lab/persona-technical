@@ -7,59 +7,84 @@ interface GraduationStepProps {
 }
 
 export default function GraduationStep({ state }: GraduationStepProps) {
+  const items = [
+    { label: "Agent", value: state.agentName },
+    { label: "You", value: state.userName },
+    {
+      label: "Gmail",
+      value: state.gmailConnected ? state.gmail : "Not connected",
+      dim: !state.gmailConnected,
+    },
+    { label: "First task", value: state.userNeed },
+  ].filter((item) => item.value);
+
   return (
-    <div className="flex flex-col items-center justify-center flex-1 p-8 gap-6">
-      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-white text-xl font-semibold">
-        {state.agentName?.charAt(0).toUpperCase() || "P"}
-      </div>
+    <div className="flex flex-col items-center justify-center flex-1 px-6">
+      {/* Animated checkmark */}
+      <svg
+        className="w-16 h-16 mb-8 animate-fade-in"
+        viewBox="0 0 48 48"
+        fill="none"
+      >
+        <circle
+          cx="24"
+          cy="24"
+          r="22"
+          stroke="var(--accent)"
+          strokeWidth="2"
+          opacity="0.2"
+        />
+        <path
+          d="M14 24 L21 31 L34 18"
+          stroke="var(--accent)"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="animate-draw-check"
+          style={{ animationDelay: "300ms" }}
+        />
+      </svg>
 
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
-          You&apos;re all set{state.userName ? `, ${state.userName}` : ""}.
-        </h2>
-        <p className="text-sm text-zinc-500 mt-2">
-          {state.agentName} is ready to help.
-        </p>
-      </div>
+      {/* Title */}
+      <h2
+        className="text-[48px] font-bold tracking-[-0.02em] text-white mb-2 animate-fade-in"
+        style={{ animationDelay: "500ms" }}
+      >
+        You&apos;re all set.
+      </h2>
 
-      <div className="w-full max-w-sm space-y-3 mt-4">
-        <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800">
-          <span className="text-sm text-zinc-500">Agent</span>
-          <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-            {state.agentName}
-          </span>
-        </div>
-        {state.userName && (
-          <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800">
-            <span className="text-sm text-zinc-500">You</span>
-            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-              {state.userName}
+      {/* Summary */}
+      <div className="w-full max-w-sm mt-10 space-y-0">
+        {items.map((item, i) => (
+          <div
+            key={item.label}
+            className={`flex items-center justify-between py-4 border-b border-[var(--divider)] animate-fade-in-up stagger-${i + 1}`}
+          >
+            <span className="text-[13px] text-[var(--text-secondary)]">
+              {item.label}
+            </span>
+            <span
+              className={`text-[17px] tracking-[-0.01em] max-w-[220px] truncate ${
+                item.dim
+                  ? "text-[var(--text-tertiary)]"
+                  : "text-white"
+              }`}
+            >
+              {item.value}
             </span>
           </div>
-        )}
-        {state.gmailConnected && state.gmail && (
-          <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800">
-            <span className="text-sm text-zinc-500">Gmail</span>
-            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-              <svg className="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-              </svg>
-              {state.gmail}
-            </span>
-          </div>
-        )}
-        {state.userNeed && (
-          <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800">
-            <span className="text-sm text-zinc-500">First task</span>
-            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate max-w-[200px]">
-              {state.userNeed}
-            </span>
-          </div>
-        )}
+        ))}
       </div>
 
-      <button className="mt-6 px-8 py-3 bg-blue-600 text-white text-sm font-medium rounded-full hover:bg-blue-700 transition-colors">
-        Start chatting with {state.agentName}
+      {/* CTA */}
+      <button
+        className="w-full max-w-sm mt-12 py-4 bg-[var(--accent)] text-white text-[17px] font-semibold rounded-xl transition-colors hover:bg-[var(--accent-hover)] animate-fade-in-up"
+        style={{
+          animationDelay: "600ms",
+          boxShadow: "0 4px 24px rgba(10, 132, 255, 0.3)",
+        }}
+      >
+        Get Started
       </button>
     </div>
   );
