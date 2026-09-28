@@ -13,7 +13,7 @@ import GmailConnect from "./GmailConnect";
 import CallUI from "./CallUI";
 import GraduationStep from "./GraduationStep";
 
-type Phase = "naming" | "confirming" | "calling" | "text-collect" | "done";
+type Phase = "naming" | "calling" | "text-collect" | "done";
 
 export default function OnboardingFlow() {
   const [state, setState] = useState<OnboardingState>(initialOnboardingState);
@@ -21,15 +21,14 @@ export default function OnboardingFlow() {
   const [phase, setPhase] = useState<Phase>("naming");
   const [showGmail, setShowGmail] = useState(false);
   const [currentField, setCurrentField] = useState<string | null>(null);
-  const [showWelcome, setShowWelcome] = useState(true);
-  const [revealStage, setRevealStage] = useState(0); // 0=nothing, 1=headline, 2=subtitle, 3=input
+  const [revealStage, setRevealStage] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, showGmail]);
 
-  // Staged welcome reveal — no CSS animation classes, pure transitions
+  // Staged welcome reveal
   useEffect(() => {
     const t1 = setTimeout(() => setRevealStage(1), 100);
     const t2 = setTimeout(() => setRevealStage(2), 500);
@@ -145,44 +144,20 @@ export default function OnboardingFlow() {
     });
   }, [addAgentMsg, askNextField]);
 
-  // === HANDLE NAMING (welcome screen input) ===
+  // === NAME SUBMITTED — go straight to call ===
   const handleNameSubmit = (name: string) => {
-    // Fade out welcome, transition to confirming phase
-    setShowWelcome(false);
-    updateState({ agentName: name });
-
-    // Show in chat
-    setTimeout(() => {
-      addUserMsg(name);
-      addAgentMsg(`${name} -- I like it. Sound good?`, 800);
-      setPhase("confirming");
-    }, 300);
+    updateState({ agentName: name, callStatus: "pending" });
+    // Brief pause then show call screen
+    setTimeout(() => setPhase("calling"), 800);
   };
 
-  // === HANDLE ALL CHAT INPUT ===
+  // === TEXT COLLECT INPUT ===
   const handleSend = (text: string) => {
     addUserMsg(text);
     const lower = text.toLowerCase().trim();
 
-    if (phase === "confirming") {
-      if (isAffirmative(lower)) {
-        addAgentMsg(`Perfect. I'm ${state.agentName}.`, 600);
-        setTimeout(() => {
-          updateState({ callStatus: "pending" });
-          setPhase("calling");
-        }, 2000);
-      } else {
-        // They want a different name
-        const newName = text.trim();
-        updateState({ agentName: newName });
-        addAgentMsg(`${newName} it is. Sound good?`, 800);
-      }
-      return;
-    }
-
     if (phase === "text-collect") {
       handleTextCollect(text, lower);
-      return;
     }
   };
 
@@ -244,7 +219,6 @@ export default function OnboardingFlow() {
 
   // === RENDER ===
 
-  // Graduation
   if (phase === "done") {
     return (
       <div className="h-full flex flex-col" style={{ backgroundColor: "var(--surface-black)" }}>
@@ -253,7 +227,7 @@ export default function OnboardingFlow() {
     );
   }
 
-  // Call
+  // Call — full screen with accept/decline
   if (phase === "calling") {
     return (
       <div className="h-full flex flex-col relative" style={{ backgroundColor: "var(--surface-black)" }}>
@@ -268,14 +242,13 @@ export default function OnboardingFlow() {
     );
   }
 
-  // Welcome — centered hero with staged transitions (no CSS animation classes)
-  if (phase === "naming" && showWelcome) {
+  // Welcome — centered hero
+  if (phase === "naming") {
     return (
       <div
         className="h-full flex flex-col items-center justify-center px-6"
         style={{ backgroundColor: "var(--surface-black)" }}
       >
-        {/* Headline */}
         <h1
           className="hero-display text-center"
           style={{
@@ -293,7 +266,6 @@ export default function OnboardingFlow() {
           Let&apos;s set up your Persona.
         </h1>
 
-        {/* Subtitle */}
         <p
           className="mt-3 text-center"
           style={{
@@ -311,7 +283,6 @@ export default function OnboardingFlow() {
           First, give your agent a name.
         </p>
 
-        {/* Input */}
         <div
           className="w-full max-w-[400px] mt-16"
           style={{
@@ -334,7 +305,7 @@ export default function OnboardingFlow() {
     );
   }
 
-  // Chat (confirming name / text-collect)
+  // Text collect — chat
   return (
     <div
       className="h-full flex flex-col"
@@ -368,25 +339,8 @@ export default function OnboardingFlow() {
         </div>
       </div>
       <div className="max-w-[480px] mx-auto w-full">
-        <ChatInput
-          onSend={handleSend}
-          placeholder={
-            phase === "confirming"
-              ? "Yes / pick a different name"
-              : "Type a message..."
-          }
-        />
+        <ChatInput onSend={handleSend} placeholder="Type a message..." />
       </div>
     </div>
   );
-}
-
-function isAffirmative(text: string): boolean {
-  const words = [
-    "yes", "yeah", "yep", "sure", "ok", "okay", "ready",
-    "sounds good", "perfect", "let's go", "yup", "ya", "ye",
-    "absolutely", "definitely", "of course", "right", "correct",
-    "good", "great", "love it", "like it",
-  ];
-  return words.some((w) => text.includes(w));
 }

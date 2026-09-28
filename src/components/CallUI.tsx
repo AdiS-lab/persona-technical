@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { useConversation } from "@elevenlabs/react";
 import { OnboardingState } from "@/lib/types";
 
@@ -20,20 +20,30 @@ export default function CallUI({
   onCallDecline,
 }: CallUIProps) {
   const [barHeights, setBarHeights] = useState([4, 4, 4, 4, 4]);
+  const sessionStarted = useRef(false);
   const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
 
   const conversation = useConversation({
     onConnect: () => {
+      console.log("[ElevenLabs] Connected");
       onStateUpdate({ callStatus: "active" });
     },
     onDisconnect: () => {
-      onStateUpdate({ callStatus: "ended" });
-      onCallEnd();
+      console.log("[ElevenLabs] Disconnected, sessionStarted:", sessionStarted.current);
+      // Only trigger end if we actually had a session going
+      if (sessionStarted.current) {
+        sessionStarted.current = false;
+        onStateUpdate({ callStatus: "ended" });
+        onCallEnd();
+      }
     },
     onError: (error) => {
-      console.error("Call error:", error);
-      onStateUpdate({ callStatus: "ended" });
-      onCallEnd();
+      console.error("[ElevenLabs] Error:", error);
+      if (sessionStarted.current) {
+        sessionStarted.current = false;
+        onStateUpdate({ callStatus: "ended" });
+        onCallEnd();
+      }
     },
   });
 
@@ -67,6 +77,8 @@ export default function CallUI({
 
     try {
       onStateUpdate({ callStatus: "ringing" });
+      sessionStarted.current = true;
+      console.log("[ElevenLabs] Starting session with agent:", agentId);
       await conversation.startSession({
         agentId,
         clientTools: {
@@ -83,14 +95,17 @@ export default function CallUI({
           },
         },
       });
+      console.log("[ElevenLabs] Session started successfully");
     } catch (error) {
-      console.error("Failed to start call:", error);
+      console.error("[ElevenLabs] Failed to start call:", error);
+      sessionStarted.current = false;
       onStateUpdate({ callStatus: "ended" });
       onCallEnd();
     }
   }, [agentId, conversation, onStateUpdate, onCallEnd, onCallDecline]);
 
   const hangUp = useCallback(async () => {
+    console.log("[ElevenLabs] Hanging up");
     await conversation.endSession();
   }, [conversation]);
 
@@ -196,7 +211,6 @@ export default function CallUI({
                 height: isConnecting ? "4px" : `${h}px`,
                 backgroundColor: "var(--primary-on-dark)",
                 transition: "height 150ms ease",
-                animationDelay: `${i * 80}ms`,
               }}
             />
           ))}
